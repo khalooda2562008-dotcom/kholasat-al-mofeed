@@ -1,0 +1,7 @@
+run = "npm run dev"
+entrypoint = "client/index.html"
+
+[deployment]
+build = ["npm", "run", "build"]
+run = ["npm", "run", "start"]
+deploymentTarget = "autoscale"

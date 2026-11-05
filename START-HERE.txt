@@ -1,0 +1,20 @@
+خلاصة المفيد — ابدأ من هنا
+
+1) ارفع ملف ZIP إلى Replit. من Shell نفّذ: unzip -o kholasat-al-mofeed-replit.zip -d .
+2) أضف PostgreSQL من Replit Database ثم انسخ DATABASE_URL إلى Secrets.
+3) أضف Secrets التالية:
+   SESSION_SECRET = قيمة عشوائية طويلة (32 حرفًا أو أكثر)
+   ADMIN_PASSWORD = كلمة مرور قوية للوحة المالك
+   YOUTUBE_API_KEY = مفتاح YouTube Data API (لتفعيل القنوات والفيديوهات)
+   GEMINI_API_KEY = مفتاح Gemini (لتفعيل جيمناوي)
+4) من Shell نفّذ:
+   npm install
+   npm run dev
+5) للنشر:
+   npm run build
+   npm start
+
+افتح /admin للدخول إلى لوحة المالك.
+راجع README.md للتفاصيل الكاملة، ولحدود النسخة الحالية والميزات التي تحتاج استكمالًا.
+
+لا تضع مفاتيح API في ملفات الواجهة أو تشارك ملف .env مع أي شخص.
