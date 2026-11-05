@@ -7,9 +7,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { db, ensureUser, defaultSettings, logUsage } from './db.js';
-import { resolveChannel, syncChannel, searchVideos } from './youtube.js';
+import { resolveChannel, syncChannel, searchVideos, testYouTubeConnection } from './youtube.js';
 import { chooseModel, generateContent } from './gemini.js';
 import { createAdminCookie, clearAdminCookie, isAdminRequest } from './auth.js';
+import { getApiSecret, getApiSecretMeta, saveApiSecret, deleteStoredApiSecret } from './secrets.js';
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
@@ -53,7 +54,7 @@ app.get('/api/bootstrap', (req,res) => {
   const videos = db.prepare(`${videoSelect} ORDER BY COALESCE(v.published_at,v.updated_at) DESC LIMIT 24`).all(userId(req),userId(req),userId(req),userId(req));
   const unread = db.prepare('SELECT COUNT(*) AS count FROM notifications WHERE user_id=? AND read_at IS NULL').get(userId(req)).count;
   const stats = { videoCount: db.prepare('SELECT COUNT(*) AS n FROM videos v JOIN user_channels uc ON uc.channel_id=v.channel_id WHERE uc.user_id=?').get(userId(req)).n, folderCount: db.prepare('SELECT COUNT(*) AS n FROM folders WHERE user_id=?').get(userId(req)).n, summaryCount: db.prepare('SELECT COUNT(*) AS n FROM summaries WHERE user_id=?').get(userId(req)).n };
-  res.json({ user, settings, channels, videos, unread, stats, integrations: { youtube: Boolean(process.env.YOUTUBE_API_KEY), gemini: Boolean(process.env.GEMINI_API_KEY) } });
+  res.json({ user, settings, channels, videos, unread, stats, integrations: { youtube: Boolean(getApiSecret('youtube')), gemini: Boolean(getApiSecret('gemini')) } });
 });
 
 app.patch('/api/profile', (req,res) => {
@@ -320,17 +321,40 @@ app.post('/api/admin/login', (req,res) => {
   res.json({ ok:true });
 });
 app.post('/api/admin/logout', (req,res) => { clearAdminCookie(res); res.json({ ok:true }); });
+app.get('/api/admin/integrations', requireAdmin, (req,res) => {
+  res.json({ integrations: { youtube: getApiSecretMeta('youtube'), gemini: getApiSecretMeta('gemini') } });
+});
+app.put('/api/admin/integrations/:provider', requireAdmin, (req,res) => {
+  const provider = String(req.params.provider || '');
+  if (!['youtube','gemini'].includes(provider)) return res.status(404).json({ error:'نوع التكامل غير معروف.' });
+  const meta = saveApiSecret(provider, req.body?.key);
+  res.json({ ok:true, integration:meta, message:'تم حفظ المفتاح مشفّرًا على الخادم.' });
+});
+app.delete('/api/admin/integrations/:provider', requireAdmin, (req,res) => {
+  const provider = String(req.params.provider || '');
+  if (!['youtube','gemini'].includes(provider)) return res.status(404).json({ error:'نوع التكامل غير معروف.' });
+  const meta = deleteStoredApiSecret(provider);
+  res.json({ ok:true, integration:meta, message: meta.source === 'environment' ? 'تم حذف النسخة المحفوظة؛ ما زال مفتاح متغيرات البيئة مستخدمًا.' : 'تم حذف المفتاح المحفوظ.' });
+});
+app.post('/api/admin/integrations/youtube/test', requireAdmin, asyncRoute(async (req,res) => {
+  const result = await testYouTubeConnection();
+  res.json({ ok:true, message:'اتصال YouTube API ناجح.', details:result });
+}));
+app.post('/api/admin/integrations/gemini/test', requireAdmin, asyncRoute(async (req,res) => {
+  const result = await generateContent('أجب بكلمة واحدة فقط: جاهز');
+  res.json({ ok:true, message:'اتصال Gemini ناجح وتم اختبار generateContent.', model:result.model });
+}));
 app.get('/api/admin/status', requireAdmin, (req,res) => {
   const count = (table) => db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get().n;
   const usage = db.prepare('SELECT provider,operation,SUM(units) AS units,COUNT(*) AS requests,SUM(CASE WHEN status=\'failed\' THEN 1 ELSE 0 END) AS failed FROM api_usage WHERE created_at >= date(\'now\') GROUP BY provider,operation').all();
   const quotaBudget = Math.max(1,Number(process.env.YOUTUBE_DAILY_QUOTA_BUDGET || 10000));
   const quotaUsed = Number(db.prepare("SELECT COALESCE(SUM(units),0) AS n FROM api_usage WHERE provider='youtube' AND created_at >= date('now')").get().n || 0);
-  res.json({ metrics:{ users:count('users'),channels:count('channels'),videos:count('videos'),folders:count('folders'),summaries:count('summaries'),notifications:count('notifications') }, quota:{budget:quotaBudget,used:quotaUsed,remaining:Math.max(0,quotaBudget-quotaUsed)}, usage, integrations:{youtube:Boolean(process.env.YOUTUBE_API_KEY),gemini:Boolean(process.env.GEMINI_API_KEY)}, modelConfigured:process.env.GEMINI_MODEL || 'اكتشاف تلقائي' });
+  res.json({ metrics:{ users:count('users'),channels:count('channels'),videos:count('videos'),folders:count('folders'),summaries:count('summaries'),notifications:count('notifications') }, quota:{budget:quotaBudget,used:quotaUsed,remaining:Math.max(0,quotaBudget-quotaUsed)}, usage, integrations:{youtube:Boolean(getApiSecret('youtube')),gemini:Boolean(getApiSecret('gemini'))}, modelConfigured:process.env.GEMINI_MODEL || 'اكتشاف تلقائي' });
 });
 app.get('/api/admin/model-check', requireAdmin, asyncRoute(async (req,res) => { const model = await chooseModel(true); res.json({ ok:true,model }); }));
 
 async function scheduledSync() {
-  if (!process.env.YOUTUBE_API_KEY) return;
+  if (!getApiSecret('youtube')) return;
   const channels = db.prepare('SELECT * FROM channels WHERE id IN (SELECT DISTINCT channel_id FROM user_channels)').all();
   for (const channel of channels) {
     try {
@@ -370,5 +394,5 @@ app.use((err,req,res,next) => {
 
 app.listen(PORT,'0.0.0.0',() => {
   console.info(`Kholasat Al-Mofeed API listening on port ${PORT}`);
-  console.info(`YouTube: ${process.env.YOUTUBE_API_KEY ? 'configured' : 'not configured'} | Gemini: ${process.env.GEMINI_API_KEY ? 'configured' : 'not configured'}`);
+  console.info(`YouTube: ${getApiSecret('youtube') ? 'configured' : 'not configured'} | Gemini: ${getApiSecret('gemini') ? 'configured' : 'not configured'}`);
 });

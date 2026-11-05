@@ -1,10 +1,12 @@
 import { logUsage } from './db.js';
+import { createHash } from 'node:crypto';
+import { getApiSecret } from './secrets.js';
 
 const BASE = 'https://generativelanguage.googleapis.com/v1beta';
-let modelCache = { model: '', at: 0 };
+let modelCache = { model: '', at: 0, keyHash: '' };
 
 async function listModels() {
-  const key = process.env.GEMINI_API_KEY;
+  const key = getApiSecret('gemini');
   if (!key) throw new Error('أضف GEMINI_API_KEY في متغيرات البيئة لتفعيل جيمناوي.');
   const response = await fetch(`${BASE}/models?key=${encodeURIComponent(key)}`);
   const body = await response.json().catch(() => ({}));
@@ -13,7 +15,10 @@ async function listModels() {
 }
 
 export async function chooseModel(force = false) {
-  if (!force && modelCache.model && Date.now() - modelCache.at < 30 * 60 * 1000) return modelCache.model;
+  const key = getApiSecret('gemini');
+  if (!key) throw new Error('أضف مفتاح Gemini من لوحة المالك أو من متغيرات البيئة.');
+  const keyHash = createHash('sha256').update(key).digest('hex').slice(0, 16);
+  if (!force && modelCache.model && modelCache.keyHash === keyHash && Date.now() - modelCache.at < 30 * 60 * 1000) return modelCache.model;
   const models = await listModels();
   const usable = models.filter(m => (m.supportedGenerationMethods || []).includes('generateContent'));
   const configured = process.env.GEMINI_MODEL;
@@ -23,12 +28,12 @@ export async function chooseModel(force = false) {
   if (!selected) selected = usable.filter(m => /flash/i.test(m.name) && !/(preview|experimental|exp)/i.test(m.name)).sort((a,b) => b.name.localeCompare(a.name))[0];
   if (!selected) selected = byName(fallback) || usable.find(m => !/(preview|experimental|exp)/i.test(m.name));
   if (!selected) throw new Error('لم يتم العثور على موديل مستقر يدعم generateContent في هذا المفتاح.');
-  modelCache = { model: selected.name.replace(/^models\//, ''), at: Date.now() };
+  modelCache = { model: selected.name.replace(/^models\//, ''), at: Date.now(), keyHash };
   return modelCache.model;
 }
 
 export async function generateContent(prompt, options = {}) {
-  const key = process.env.GEMINI_API_KEY;
+  const key = getApiSecret('gemini');
   if (!key) throw new Error('جيمناوي غير مفعّل: أضف GEMINI_API_KEY إلى Secrets.');
   const model = options.model || await chooseModel();
   const call = async name => {

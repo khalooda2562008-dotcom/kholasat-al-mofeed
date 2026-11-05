@@ -1,9 +1,10 @@
 import { db, logUsage, parseDuration } from './db.js';
+import { getApiSecret } from './secrets.js';
 
 const API = 'https://www.googleapis.com/youtube/v3';
 
 async function yt(path, params, operation, units = 1) {
-  const key = process.env.YOUTUBE_API_KEY;
+  const key = getApiSecret('youtube');
   if (!key) throw new Error('أضف YOUTUBE_API_KEY في متغيرات البيئة لتفعيل YouTube.');
   const budget = Math.max(1, Number(process.env.YOUTUBE_DAILY_QUOTA_BUDGET || 10000));
   const consumed = Number(db.prepare("SELECT COALESCE(SUM(units),0) AS n FROM api_usage WHERE provider='youtube' AND created_at >= date('now')").get().n || 0);
@@ -99,4 +100,10 @@ export async function searchVideos(query, maxResults = 12) {
     published_at: item.snippet.publishedAt, channel_title: item.snippet.channelTitle,
     channel_id: item.snippet.channelId, external_result: true
   }));
+}
+
+export async function testYouTubeConnection() {
+  const result = await yt('channels', { part: 'id', id: 'UC_x5XG1OV2P6uZZ5FSM9Ttw' }, 'admin_connection_test', 1);
+  if (!Array.isArray(result.items)) throw new Error('استجابة YouTube غير متوقعة.');
+  return { checked: true, quotaUnitsEstimated: 1 };
 }
