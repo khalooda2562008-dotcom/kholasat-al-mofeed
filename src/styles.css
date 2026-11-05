@@ -8,3 +8,9 @@ body[data-theme="light"]{--bg:#f2f5fa;--panel:#fff;--card:#fff;--border:rgba(27,
 @media(max-width:760px){.external-results{grid-template-columns:1fr}.external-result img{width:105px}}
 
 .channel-cover{display:flex;align-items:center;gap:18px;padding:20px;background:linear-gradient(120deg,#1b2e50,#211d42);border:1px solid var(--border);border-radius:18px;margin:15px 0 30px}.channel-cover>img{width:86px;height:86px;object-fit:cover;border-radius:50%;border:3px solid #ffffff24}.channel-cover>div{flex:1;min-width:0}.channel-cover h1{font-size:21px;margin:3px 0}.channel-cover p{font-size:10px;color:#bdc9de;line-height:1.8;max-height:46px;overflow:hidden}.channel-cover small{color:#91a9cd;font-size:9px}@media(max-width:760px){.channel-cover{flex-wrap:wrap;padding:14px}.channel-cover>img{width:60px;height:60px}.channel-cover h1{font-size:16px}.channel-cover .secondary-button{width:100%}}
+
+/* Owner integrations shortcut inside general settings */
+.settings-integrations-action{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;border:1px solid var(--border-color,rgba(255,255,255,.09));border-radius:14px;background:rgba(79,142,247,.06)}
+.settings-integrations-action>span{display:flex;align-items:center;gap:9px;color:var(--muted-text,#9aa4b2);font-size:13px}
+.settings-integrations-action .primary-button{display:inline-flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap}
+@media(max-width:640px){.settings-integrations-action{align-items:stretch;flex-direction:column}.settings-integrations-action .primary-button{justify-content:center}}

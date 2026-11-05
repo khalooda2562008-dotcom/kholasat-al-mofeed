@@ -1,20 +1,15 @@
-# سياسة الأمان
+# Security Policy — Kholasat Al-Mofeed
 
-## الإبلاغ عن ثغرة
+## Reporting
+Do not publish API keys, session cookies, database files, or exploitable details in public issues. Report suspected vulnerabilities privately to the repository owner.
 
-افتح بلاغًا خاصًا عبر **Security → Report a vulnerability** في المستودع، ولا تفتح Issue عامًا لثغرة أمنية.
+## Secret handling
+- Never commit `.env`, real API keys, session secrets, or SQLite database files.
+- Store YouTube and Gemini keys through the owner dashboard or server environment variables only.
+- Database-stored API keys are encrypted with AES-256-GCM. The encryption key is derived from `ADMIN_SESSION_SECRET` (falling back to `SESSION_SECRET`). Keep that secret stable and backed up separately from the database.
+- Use HTTPS for public deployments and a strong, unique `ADMIN_PASSWORD`.
+- Restrict Google API keys to the minimum services and quotas needed.
+- Keep the data directory on persistent storage and back it up securely.
 
-اذكر: الخطوات لإعادة الإنتاج، التأثير المتوقع، والنسخة/الالتزام. نرد عادةً خلال 48 ساعة.
-
-## ما لا يجب رفعه
-
-- ملف `.env` أو أي مفاتيح `YOUTUBE_API_KEY` / `GEMINI_API_KEY` / `ADMIN_PASSWORD` / `SESSION_SECRET`.
-- ملفات قاعدة البيانات `data/*.sqlite`.
-- سجلات تحتوي بيانات مستخدمين.
-
-## ملاحظات نشر
-
-- شغّل الإنتاج خلف HTTPS (الكوكي الموقّع يحتاج اتصالاً آمناً).
-- استخدم كلمات مرور وأسرارًا عشوائية طويلة، وجدّدها إذا انكشفت.
-- قيّد حصة YouTube اليومية عبر `YOUTUBE_DAILY_QUOTA_BUDGET`.
-- اربط تخزينًا دائمًا لمجلد `data/` وإلا فُقدت البيانات عند إعادة النشر.
+## Supported runtime
+Use a maintained Node.js LTS release (20 or 22) and keep dependencies updated.

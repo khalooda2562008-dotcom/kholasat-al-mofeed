@@ -35,7 +35,7 @@ export default function Layout() {
     <aside className={`sidebar ${drawer?'sidebar-open':''}`}>
       <div className="side-top"><span>مساحة التعلم</span><button className="icon-button close-drawer" onClick={()=>setDrawer(false)}><X/></button></div>
       <nav>{links.map(({to,label,icon:Icon,end})=><NavLink key={to} to={to} end={end} onClick={()=>setDrawer(false)} className={({isActive})=>`nav-link ${isActive?'nav-active':''}`}><Icon size={18}/><span>{label}</span></NavLink>)}</nav>
-      <div className="sidebar-bottom"><div className="mini-promo"><Sparkles size={18}/><b>تعلم بذكاء</b><p>حوّل الفيديوهات إلى معرفة منظمة مع جيمناوي.</p><button onClick={()=>{navigate('/ai');setDrawer(false)}}>ابدأ المحادثة</button></div><NavLink to="/admin" onClick={()=>setDrawer(false)} className="nav-link admin-link"><Shield size={17}/><span>لوحة المالك</span></NavLink><small>خلاصة المفيد · إصدار 1.0</small></div>
+      <div className="sidebar-bottom"><div className="mini-promo"><Sparkles size={18}/><b>تعلم بذكاء</b><p>حوّل الفيديوهات إلى معرفة منظمة مع جيمناوي.</p><button onClick={()=>{navigate('/ai');setDrawer(false)}}>ابدأ المحادثة</button></div><NavLink to="/admin" onClick={()=>setDrawer(false)} className="nav-link admin-link"><Shield size={17}/><span>لوحة المالك</span></NavLink><small>خلاصة المفيد · إصدار 2.0.0</small></div>
     </aside>
     <main className="main-content"><Outlet/></main>
   </div>;

@@ -1,0 +1,18 @@
+services:
+  kholasat-al-mofeed:
+    build: .
+    container_name: kholasat-al-mofeed
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_FILE: /app/data/kholasat.sqlite
+    volumes:
+      - kholasat_data:/app/data
+
+volumes:
+  kholasat_data:

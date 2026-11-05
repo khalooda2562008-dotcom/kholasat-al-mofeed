@@ -5,7 +5,7 @@ const API = 'https://www.googleapis.com/youtube/v3';
 
 async function yt(path, params, operation, units = 1) {
   const key = getApiSecret('youtube');
-  if (!key) throw new Error('أضف YOUTUBE_API_KEY في متغيرات البيئة لتفعيل YouTube.');
+  if (!key) throw new Error('أضف مفتاح YouTube من لوحة المالك أو من متغيرات البيئة لتفعيل الخدمة.');
   const budget = Math.max(1, Number(process.env.YOUTUBE_DAILY_QUOTA_BUDGET || 10000));
   const consumed = Number(db.prepare("SELECT COALESCE(SUM(units),0) AS n FROM api_usage WHERE provider='youtube' AND created_at >= date('now')").get().n || 0);
   if (consumed + units > budget) throw new Error(`تم بلوغ حد الحصة التقديري الداخلي (${consumed}/${budget} وحدة). راجع الحصة الفعلية في Google Cloud Console.`);

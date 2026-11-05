@@ -192,7 +192,7 @@ export default function Admin() {
           </article>;
         })}
       </div>
-      <div className="api-security-note"><Shield size={17}/><span>المفاتيح لا تُرسل إلى واجهة المستخدم بعد حفظها؛ تُشفّر على الخادم باستخدام AES-256-GCM. لا ترفع ملف .env أو المفاتيح إلى GitHub، ولا تغيّر SESSION_SECRET بعد حفظ المفاتيح إلا بعد ترحيلها.</span></div>
+      <div className="api-security-note"><Shield size={17}/><span>المفاتيح لا تُرسل إلى واجهة المستخدم بعد حفظها؛ تُشفّر على الخادم باستخدام AES-256-GCM. لا ترفع ملف .env أو المفاتيح إلى GitHub، ولا تغيّر ADMIN_SESSION_SECRET بعد حفظ المفاتيح إلا بعد ترحيلها.</span></div>
     </section>
 
     <section className="panel admin-integrations">

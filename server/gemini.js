@@ -34,7 +34,7 @@ export async function chooseModel(force = false) {
 
 export async function generateContent(prompt, options = {}) {
   const key = getApiSecret('gemini');
-  if (!key) throw new Error('جيمناوي غير مفعّل: أضف GEMINI_API_KEY إلى Secrets.');
+  if (!key) throw new Error('جيمناوي غير مفعّل: أضف مفتاح Gemini من لوحة المالك أو من متغيرات البيئة.');
   const model = options.model || await chooseModel();
   const call = async name => {
     const response = await fetch(`${BASE}/models/${name}:generateContent?key=${encodeURIComponent(key)}`, {

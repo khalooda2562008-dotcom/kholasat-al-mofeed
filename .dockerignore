@@ -1,9 +1,12 @@
 node_modules
-dist
-data
+npm-debug.log
 .env
 .env.*
+!.env.example
+dist
+data/*.sqlite
+data/*.sqlite-shm
+data/*.sqlite-wal
 .git
 .github
-*.log
 coverage
