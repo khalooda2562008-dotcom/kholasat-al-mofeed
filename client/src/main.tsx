@@ -5,11 +5,11 @@ import App from './App';
 import './styles.css';
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  window.addEventListener('load', () => navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {}));
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter><App /></BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}><App /></BrowserRouter>
   </React.StrictMode>
 );
