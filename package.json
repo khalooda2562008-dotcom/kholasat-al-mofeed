@@ -2,41 +2,34 @@
   "name": "kholasat-al-mofeed",
   "version": "1.0.0",
   "private": true,
-  "engines": { "node": ">=20.19.0" },
   "type": "module",
-  "description": "منصة خلاصة المفيد لتنظيم واكتشاف الفيديوهات التعليمية",
+  "description": "منصة خلاصة المفيد لتنظيم الفيديوهات التعليمية وبناء مكتبة تعلم ذكية",
   "scripts": {
-    "dev": "concurrently -k \"tsx watch server/index.ts\" \"vite --host 0.0.0.0\"",
-    "build": "tsc -p tsconfig.server.json && vite build",
-    "start": "node dist-server/index.js",
-    "typecheck": "tsc --noEmit -p tsconfig.client.json && tsc --noEmit -p tsconfig.server.json"
+    "dev": "concurrently -k \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:server": "node --watch server/index.js",
+    "dev:web": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "start": "cross-env NODE_ENV=production node server/index.js",
+    "check": "node --check server/index.js && node --check server/db.js && node --check server/youtube.js && node --check server/gemini.js && node --check server/auth.js"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
+    "better-sqlite3": "^11.8.1",
+    "cookie": "^1.0.2",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.0.0",
-    "jsonwebtoken": "^9.0.2",
-    "lucide-react": "^0.468.0",
     "node-cron": "^3.0.3",
-    "pg": "^8.13.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.1",
-    "zod": "^3.24.1"
+    "lucide-react": "^0.468.0"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/jsonwebtoken": "^9.0.7",
-    "@types/node": "^22.10.2",
-    "@types/node-cron": "^3.0.11",
-    "@types/pg": "^8.11.10",
-    "@types/react": "^18.3.18",
-    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.1.2",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2",
     "vite": "^6.0.7"
-  }
+  },
+  "engines": { "node": ">=20.0.0" }
 }

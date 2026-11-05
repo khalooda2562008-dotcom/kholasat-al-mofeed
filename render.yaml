@@ -1,0 +1,28 @@
+# نشر بنقرة واحدة على Render: قاعدة SQLite تحتاج قرصًا دائمًا.
+services:
+  - type: web
+    name: kholasat-al-mofeed
+    runtime: node
+    plan: starter
+    buildCommand: npm ci --no-audit --no-fund && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_FILE
+        value: /var/data/kholasat.sqlite
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+    disk:
+      name: kholasat-data
+      mountPath: /var/data
+      sizeGB: 1

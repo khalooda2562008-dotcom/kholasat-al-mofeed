@@ -1,0 +1,17 @@
+import { useEffect, useState } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { Search, Globe2, Library, Youtube, X } from 'lucide-react';
+import { api } from '../api';
+import { VideoGrid } from '../components/VideoCard';
+export default function Explore(){
+  const [params,setParams]=useSearchParams(); const initial=params.get('q')||''; const initialCategory=params.get('category')||'';
+  const [q,setQ]=useState(initial),[category,setCategory]=useState(initialCategory),[mode,setMode]=useState('library'),[videos,setVideos]=useState([]),[channels,setChannels]=useState([]),[external,setExternal]=useState([]),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  const search=async(e)=>{e?.preventDefault();if(!q.trim())return;setBusy(true);setError('');setCategory('');setParams({q});try{if(mode==='library'){const d=await api(`/search?q=${encodeURIComponent(q)}`);setVideos(d.videos);setChannels(d.channels);setExternal([]);}else{const d=await api(`/search/youtube?q=${encodeURIComponent(q)}`);setExternal(d.items);setVideos([]);setChannels([]);}}catch(err){setError(err.message)}finally{setBusy(false)}};
+  useEffect(()=>{if(initial) search(); else if(initialCategory){api(`/videos?category=${encodeURIComponent(initialCategory)}`).then(d=>setVideos(d.items)).catch(e=>setError(e.message));}},[]);
+  return <div className="page-wrap"><div className="page-title-row"><div><span className="section-kicker">اكتشف المعرفة</span><h1>استكشف</h1><p>ابحث داخل مكتبتك، أو اطلب بحثًا صريحًا في YouTube.</p></div></div>
+    {category&&<div className="category-filter-note">المجال المحدد: <b>{category}</b><button onClick={()=>{setCategory('');setParams({});setVideos([])}}><X size={14}/> إزالة التصفية</button></div>}<form className="search-page-box" onSubmit={search}><Search/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="مثال: تعلم Python من الصفر"/><button className="primary-button" disabled={busy}>{busy?'جارٍ البحث':'بحث'}</button></form>
+    <div className="segmented"><button onClick={()=>setMode('library')} className={mode==='library'?'selected':''}><Library size={16}/> مكتبتي</button><button onClick={()=>setMode('youtube')} className={mode==='youtube'?'selected':''}><Youtube size={16}/> بحث YouTube خارجي</button></div>
+    {error&&<div className="error-panel">{error}</div>}
+    {mode==='library'?<><div className="section-heading"><h2>الفيديوهات المطابقة</h2><span className="muted">{videos.length} نتيجة</span></div><VideoGrid items={videos} empty={q?'لا توجد نتائج في قنواتك المضافة.':'اكتب كلمة أو جملة للبحث.'}/>{channels.length>0&&<section className="content-section"><h2>القنوات</h2><div className="channel-grid">{channels.map(c=><div key={c.id} className="channel-card"><img src={c.thumbnail||'/assets/logo.svg'}/><div><b>{c.title}</b><small>{c.user_category}</small></div></div>)}</div></section>}</>:<><div className="integration-alert"><Globe2/><div><b>هذه نتائج خارج مكتبتك</b><small>لن تُضاف إلى الرئيسية تلقائيًا. أضف القناة المالكة للفيديو إلى مكتبتك لمتابعة محتواها.</small></div></div>{external.length?<div className="external-results">{external.map(v=><a key={v.id} href={`https://www.youtube.com/watch?v=${v.id}`} target="_blank" rel="noreferrer" className="external-result"><img src={v.thumbnail||'/assets/logo.svg'}/><div><b>{v.title}</b><small>{v.channel_title} · فتح نتيجة YouTube الخارجية</small></div></a>)}</div>:<div className="empty-state">لا توجد نتائج. تأكد من تفعيل YouTube API.</div>}</>}
+  </div>
+}
